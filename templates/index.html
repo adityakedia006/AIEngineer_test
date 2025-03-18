@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Authentication Test</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f4f4f4;
+        color: #333;
+    }
+    
+    header {
+        background: #1b1d30;
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+    }
+    
+    nav ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    nav ul li {
+        display: inline;
+        margin: 0 15px;
+    }
+    
+    nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    main {
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    
+    .auth-container {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        background: #fff;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .auth-container h3 {
+        color: #1b1d30;
+        margin-bottom: 10px;
+    }
+    
+    .auth-container input {
+        width: 90%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    
+    .auth-container button {
+        width: 100%;
+        padding: 10px;
+        background: #1b1d30;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+    
+    .auth-container button:hover {
+        background: #0056b3;
+    }
+    
+    footer {
+        text-align: center;
+        padding: 15px;
+        background: #1b1d30;
+        color: white;
+        margin-top: 20px;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+    }
+    
+    @media (max-width: 600px) {
+        main {
+            width: 90%;
+        }
+        
+        .auth-container input, 
+        .auth-container button {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+<body>
+    <header>
+        <h1>Authentication Test</h1>
+    </header>
+    <main>
+        <div class="auth-container" id="register-container">
+            <h3>Register</h3>
+            <form onsubmit="event.preventDefault(); register();">
+                <input type="email" id="register-email" placeholder="Email">
+                <input type="password" id="register-password" placeholder="Password">
+                <button type="submit">Register</button>
+            </form>
+        </div>
+        <div class="auth-container" id="verify-container">
+            <h3>Verify OTP</h3>
+            <form onsubmit="event.preventDefault(); verifyOTP();">
+                <input type="email" id="verify-email" placeholder="Email">
+                <input type="text" id="verify-otp" placeholder="OTP">
+                <button type="submit">Verify OTP</button>
+            </form>
+        </div>
+        <div class="auth-container" id="login-container">
+            <h3>Login</h3>
+            <form id="login-form" method="post" onsubmit="event.preventDefault(); login();">
+                {% csrf_token %}
+                <input type="email" name="email" id="login-email" placeholder="Email">
+                <input type="password" name="password" id="login-password" placeholder="Password">
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div class="auth-container" id="user-details-container">
+            <h3>User Details</h3>
+            <button onclick="getUserDetails()">Get User Details</button>
+            <pre id="user-details"></pre>
+        </div>
+        <div class="auth-container" id="logout-container">
+            <h3>Logout</h3>
+            <form id="logout-form" method="post" action="api/logout/" onsubmit="event.preventDefault(); logoutUser();">
+                {% csrf_token %}
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Authentication Test</p>
+    </footer>
+    <script>
+        async function register() {
+            try {
+                console.log('Register button clicked');
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                console.log('Email:', email);
+                console.log('Password:', password);
+                const response = await fetch('/api/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await response.json();
+                console.log('Response:', data);
+                if (response.status === 200) {
+                    alert(data.message || 'Registered successfully');
+                    window.location.reload();
+                } else {
+                    console.log(data)
+                    alert(data.error || 'Registration failed');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('An error occurred. Check console for details.');
+            }
+        }
+
+        async function verifyOTP() {
+            try {
+            const email = document.getElementById('verify-email').value;
+            const otp = document.getElementById('verify-otp').value;
+            const response = await fetch('/api/register/verify/', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ email, otp }),
+            });
+            const data = await response.json();
+            alert(data.message || data.error);
+            if (response.status === 200) {
+                window.location.reload();
+            }
+            } catch (e) {
+            console.error(e);
+            alert('An error occurred. Check console for details.');
+            }
+        }
+
+        function login() {
+            const form = document.getElementById('login-form');
+            const formData = new FormData(form);
+            fetch('/api/login/', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Already logged in') {
+                    alert('Already logged in');
+                } else {
+                    alert(data.message || 'Logged in successfully');
+                    window.location.reload();
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('An error occurred. Check console for details.');
+            });
+        }
+
+        async function getUserDetails() {
+            try {
+                const response = await fetch('/api/me/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+                const data = await response.json();
+                document.getElementById('user-details').textContent = JSON.stringify(data, null, 2);
+            } catch (e) {
+                console.error(e);
+                alert('An error occurred. Check console for details.');
+            }
+        }
+
+        function logoutUser() {
+            const formData = new FormData(document.getElementById("logout-form"));
+
+            fetch("api/logout/", {
+                method: "POST",
+                body: formData,
+                credentials: "include",
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    throw new Error("Logout failed");
+                }
+            })
+            .then(data => {
+                alert(data.message || 'Logged out successfully');
+                window.location.reload();
+            })
+            .catch(error => {
+                alert("Error: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
